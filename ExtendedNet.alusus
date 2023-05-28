@@ -1,5 +1,5 @@
 
-    import "Srl/Net";
+import "Srl/Net";
 @merge module Srl {
     @merge module Net {
         class _Content {
@@ -18,71 +18,6 @@
             Srl.Memory.copy(content~cnt.data~cnt(content~cnt.size)~ptr, chunk, size * count);
             content~cnt.size = newSize;
             return(size * count)~cast[Int];
-        }
-
-        func get(url: ptr[array[Char]], result: ptr[ptr], resultCount: ptr[Int]): Bool {
-            def curlHandle: ptr[Curl];
-            def resultCode: Int;
-
-            result~cnt = 0;
-            resultCount~cnt = 0;
-
-            def content: _Content;
-            content.data = 0;
-            content.size = 0;
-
-            curlHandle = CurlEasy.init();
-            if (curlHandle == 0) return false;
-
-            CurlEasy.setOpt(curlHandle, CurlOpt.URL, url);
-            CurlEasy.setOpt(curlHandle, CurlOpt.HTTPGET, 1);
-            CurlEasy.setOpt(curlHandle, CurlOpt.WRITEFUNCTION, _getCallbackFunction~ptr);
-            CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
-            CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
-            CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
-            CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
-            resultCode = CurlEasy.perform(curlHandle);
-            CurlEasy.cleanup(curlHandle);
-            if resultCode == CurlCode.OK {
-                // Zero terminate the data.
-                result~cnt = Srl.Memory.realloc(content.data, content.size + 1);
-                result~cnt~cast[ptr[array[Word[8]]]]~cnt(content.size) = 0;
-                resultCount~cnt = content.size;
-                return true;
-            } else {
-                return false;
-            };
-        }
-
-        func getFile(url: ptr[array[Char]], filename: ptr[array[Char]]): Bool {
-            return getFile(url, filename, 0);
-        }
-
-        func getFile(url: ptr[array[Char]], filename: ptr[array[Char]], auth: ptr[array[Char]]): Bool {
-            def curlHandle: ptr[Curl];
-            def resultCode: Int;
-
-            curlHandle = CurlEasy.init();
-            if curlHandle == 0 return false;
-
-            def file: ptr[Srl.Fs.File];
-            file = Srl.Fs.openFile(filename, "wb");
-            if file == 0 {
-                CurlEasy.cleanup(curlHandle);
-                return false;
-            };
-            CurlEasy.setOpt(curlHandle, CurlOpt.URL, url);
-            if auth != 0 CurlEasy.setOpt(curlHandle, CurlOpt.USERPWD, auth);
-            CurlEasy.setOpt(curlHandle, CurlOpt.HTTPGET, 1);
-            CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, file);
-            CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
-            CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
-            CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
-            resultCode = CurlEasy.perform(curlHandle);
-            CurlEasy.cleanup(curlHandle);
-            Srl.Fs.closeFile(file);
-            if resultCode == CurlCode.OK return true
-            else return false;
         }
 
         func putFile(url: ptr[array[Char]], filename: ptr[array[Char]]): Bool {
@@ -211,7 +146,7 @@
             //resultCount~cnt = 0;
             def uploadPoiner: _UploadStatus;
             uploadPoiner.bytesRead = 0;
-            uploadPoiner.emailString=Srl.String.merge(emailArray, "\r\n");
+            uploadPoiner.emailString = Srl.String.merge(emailArray, "\r\n");
             curlHandle = CurlEasy.init();
             if curlHandle == 0 return false;
 
