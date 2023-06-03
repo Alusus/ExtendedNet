@@ -1,0 +1,16 @@
+import "Srl/Console";
+import "Srl/String";
+import "Srl/Net";
+import "Apm";
+Apm.importFile("Alusus/ExtendedNet");
+use Srl;
+def emailArray: Array[String];
+def reseviers: Array[String];
+reseviers.add(String("reseviers1@gmail.com"));
+reseviers.add(String("reseviers2@outlook.com"));
+emailArray = Net.buildEmailString(reseviers, String("sender@outlook.com"), String("SMTP example message"),
+    String("<html><body>\r\n<p>This is the inline <b>HTML</b> message of the email.</p>"
+    "<br />\r\n"
+    "<p>It could be a lot of HTML data that would be displayed by email viewers able to handle HTML.</p>."
+    "</body></html>\r\n"), String("html"));
+Net.smtp("smtp://smtp-mail.outlook.com:587", emailArray, "password1");
