@@ -1,5 +1,5 @@
+import "Srl/Net";
 
-    import "Srl/Net";
 @merge module Srl {
     @merge module Net {
         func putFile(url: ptr[array[Char]], filename: ptr[array[Char]]): Bool {
@@ -45,7 +45,7 @@
             return post(url, postedData, result: ptr[ptr], resultCount: ptr[Int], 0);
         }
 
-        func post(url: ptr[array[Char]], postedData: ptr[array[Char]],  result: ptr[ptr], resultCount: ptr[Int], auth: ptr[array[Char]]): Bool {
+        func post(url: ptr[array[Char]], postedData: ptr[array[Char]], result: ptr[ptr], resultCount: ptr[Int], auth: ptr[array[Char]]): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
 
@@ -80,7 +80,12 @@
             }
         }
 
-        func post(url: ptr[array[Char]], postedData: ptr[array[Char]], outputFilename: ptr[array[Char]], auth: ptr[array[Char]]): Bool {
+        func post(
+            url: ptr[array[Char]],
+            postedData: ptr[array[Char]],
+            outputFilename: ptr[array[Char]],
+            auth: ptr[array[Char]]
+        ): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
             curlHandle = CurlEasy.init();
@@ -105,25 +110,6 @@
             else return false;
         }
 
-        func buildEmailString(reseviers: Srl.Array[Srl.String], sender: Srl.String, subject: Srl.String, body: Srl.String, textType: Srl.String): Array[Srl.String] {
-            def emailArray: Array[Srl.String];
-            emailArray.add(Srl.String("To:") + reseviers(0));
-            emailArray.add(Srl.String("From:") + sender);
-            def i: int = 0;
-            def ccString: Srl.String = "";
-            for i = 1, i < reseviers.getLength(), i += 1 {
-                ccString = ccString + reseviers(i) + String(",");
-            }
-            emailArray.add(Srl.String("Cc: ") + ccString);
-            emailArray.add(Srl.String("Subject: ") + subject);
-            if textType == Srl.String("html") {
-                emailArray.add(Srl.String("Content-Type: text/html; charset=UTF-8"));
-            }
-            emailArray.add(Srl.String(""));
-            emailArray.add(body);
-            return emailArray
-        }
-
         func smtp(url: ptr[array[Char]], emailArray: Array[Srl.String], password: ptr[array[Char]]): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
@@ -131,8 +117,6 @@
             def content: _Content;
             content.data = 0;
             content.size = 0;
-
-
 
             class _UploadStatus {
                 def bytesRead: ArchInt;
@@ -175,8 +159,6 @@
             Console.print("email : %s\n", emailArray(1).split(":")(1).buf);
             CurlEasy.setOpt(curlHandle, CurlOpt.URL, url);
 
-
-
             CurlEasy.setOpt(curlHandle, CurlOpt.MAIL_FROM, emailArray(1).split(":")(1).buf);
             recipients = CurlSlist.append(recipients, emailArray(0).split(":")(1).buf);
             def i: int = 0;
@@ -185,9 +167,7 @@
             for i = 0, i < ccArray.getLength() - 1, i += 1
                 recipients = CurlSlist.append(recipients, ccArray(i).buf);
             CurlEasy.setOpt(curlHandle, CurlOpt.MAIL_RCPT, recipients);
-
             CurlEasy.setOpt(curlHandle, CurlOpt.USE_SSL, 3);
-
             CurlEasy.setOpt(curlHandle, CurlOpt.READFUNCTION, _smtpCallbackFunction~ptr);
             CurlEasy.setOpt(curlHandle, CurlOpt.READDATA, uploadPoiner~ptr);
             CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
@@ -198,12 +178,33 @@
             resultCode = CurlEasy.perform(curlHandle);
             CurlEasy.cleanup(curlHandle);
 
-            if resultCode == CurlCode.OK {
-                return true;
-            } else {
-                return false;
+            if resultCode == CurlCode.OK return true;
+            else return false;
+        }
+
+        func prepareEmailData(
+            receivers: Srl.Array[Srl.String],
+            sender: Srl.String,
+            subject: Srl.String,
+            body: Srl.String,
+            bodyType: Srl.String
+        ): Array[Srl.String] {
+            def emailArray: Array[Srl.String];
+            emailArray.add(Srl.String("To:") + receivers(0));
+            emailArray.add(Srl.String("From:") + sender);
+            def i: int = 0;
+            def ccString: Srl.String = "";
+            for i = 1, i < receivers.getLength(), i += 1 {
+                ccString = ccString + receivers(i) + String(",");
             }
+            emailArray.add(Srl.String("Cc: ") + ccString);
+            emailArray.add(Srl.String("Subject: ") + subject);
+            if bodyType == Srl.String("html") {
+                emailArray.add(Srl.String("Content-Type: text/html; charset=UTF-8"));
+            }
+            emailArray.add(Srl.String(""));
+            emailArray.add(body);
+            return emailArray
         }
     }
 }
-
