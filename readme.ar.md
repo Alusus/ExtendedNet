@@ -239,9 +239,9 @@ func smtp(url: CharsPtr, emailData: Array[Srl.String], password: CharsPtr): Bool
 
 ```
 func prepareEmailData(
-    receivers: Srl.Array[Srl.String], sender: Srl.String, 
-    subject: Srl.String, body: Srl.String, bodyType: Srl.String
-): Array[Srl.String]
+    receivers: Array[String], sender: String, 
+    subject: String, body: String, bodyType: String
+): Array[String]
 ```
 
 هذه الدالة تهيئ بيانات البريد الإلكتروني لاستخداها في دالة `أرسل_بريد`.

@@ -38,7 +38,7 @@ if Net.post("https://example.org","the posted data go here", data~ptr, size~ptr)
 ### post
 
 ```
-func post(url: ptr[array[Char]], postedData: ptr[array[Char]], result: ptr[ptr], resultCount: ptr[Int], auth: ptr[array[Char]]): Bool
+func post(url: CharsPtr, postedData: CharsPtr, result: ptr[ptr], resultCount: ptr[Int], auth: CharsPtr): Bool
 ```
 
 This function send post request with data and get the server response into the result ptr.
@@ -56,7 +56,7 @@ This function send post request with data and get the server response into the r
 Returns true on success.
 
 ```
-func post(url: ptr[array[Char]], postedData: ptr[array[Char]], outputFilename: ptr[array[Char]], auth: ptr[array[Char]]): Bool
+func post(url: CharsPtr, postedData: CharsPtr, outputFilename: CharsPtr, auth: CharsPtr): Bool
 ```
 
 This function does the same work as the previous function but it store the server response into file.
@@ -72,7 +72,7 @@ This function does the same work as the previous function but it store the serve
 Returns true on success.
 
 ```
-func post(url: ptr[array[Char]], postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool
+func post(url: CharsPtr, postedData: CharsPtr, outputFilename: CharsPtr): Bool
 ```
 
 This function does the same work as the previous function but it doesn't have auth in it.
@@ -86,7 +86,7 @@ This function does the same work as the previous function but it doesn't have au
 Returns true on success.
 
 ```
-func post(url: ptr[array[Char]], postedData: ptr[array[Char]], result: ptr[ptr], resultCount: ptr[Int]): Bool
+func post(url: CharsPtr, postedData: CharsPtr, result: ptr[ptr], resultCount: ptr[Int]): Bool
 ```
 
 This function does the same work as the previous function but it store the server response into result ptr.
@@ -104,7 +104,7 @@ Returns true on success.
 ### putFile
 
 ```
-func putFile(url: ptr[array[Char]], filename: ptr[array[Char]], auth: ptr[array[Char]]): Bool
+func putFile(url: CharsPtr, filename: CharsPtr, auth: CharsPtr): Bool
 ```
 
 This function send put request with file to the server.
@@ -118,7 +118,7 @@ This function send put request with file to the server.
 Returns true on success.
 
 ```
-func putFile(url: ptr[array[Char]], filename: ptr[array[Char]]): Bool
+func putFile(url: CharsPtr, filename: CharsPtr): Bool
 ```
 
 This function does the same work as the previous function but it doesn't have auth in it.
@@ -132,7 +132,7 @@ Returns true on success.
 ### smtp
 
 ```
-func smtp(url: ptr[array[Char]], emailData: Array[Srl.String], password: ptr[array[Char]]): Bool
+func smtp(url: CharsPtr, emailData: Array[Srl.String], password: CharsPtr): Bool
 ```
 
 this function send email via smtp protocol.
@@ -149,12 +149,12 @@ Returns true on success.
 
 ```
 func prepareEmailData(
-    receivers: Srl.Array[Srl.String],
-    sender: Srl.String, 
-    subject: Srl.String,
-    body: Srl.String,
-    bodyType: Srl.String
-): Array[Srl.String]
+    receivers: Array[String],
+    sender: String, 
+    subject: String,
+    body: String,
+    bodyType: String
+): Array[String]
 ```
 
 This function builds the email and returns the email array to use for sending the email.

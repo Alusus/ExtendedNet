@@ -2,11 +2,11 @@ import "Srl/Net";
 
 @merge module Srl {
     @merge module Net {
-        func putFile(url: ptr[array[Char]], filename: ptr[array[Char]]): Bool {
+        func putFile(url: CharsPtr, filename: CharsPtr): Bool {
             return putFile(url, filename, 0);
         }
 
-        func putFile(url: ptr[array[Char]], filename: ptr[array[Char]], auth: ptr[array[Char]]): Bool {
+        func putFile(url: CharsPtr, filename: CharsPtr, auth: CharsPtr): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
 
@@ -37,15 +37,15 @@ import "Srl/Net";
             else return false;
         }
 
-        func post(url: ptr[array[Char]], postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool {
+        func post(url: CharsPtr, postedData: CharsPtr, outputFilename: CharsPtr): Bool {
             return post(url, postedData, outputFilename, 0);
         }
 
-        func post(url: ptr[array[Char]], postedData: ptr[array[Char]], result: ptr[ptr], resultCount: ptr[Int]): Bool {
+        func post(url: CharsPtr, postedData: CharsPtr, result: ptr[ptr], resultCount: ptr[Int]): Bool {
             return post(url, postedData, result: ptr[ptr], resultCount: ptr[Int], 0);
         }
 
-        func post(url: ptr[array[Char]], postedData: ptr[array[Char]], result: ptr[ptr], resultCount: ptr[Int], auth: ptr[array[Char]]): Bool {
+        func post(url: CharsPtr, postedData: CharsPtr, result: ptr[ptr], resultCount: ptr[Int], auth: CharsPtr): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
 
@@ -81,10 +81,10 @@ import "Srl/Net";
         }
 
         func post(
-            url: ptr[array[Char]],
-            postedData: ptr[array[Char]],
-            outputFilename: ptr[array[Char]],
-            auth: ptr[array[Char]]
+            url: CharsPtr,
+            postedData: CharsPtr,
+            outputFilename: CharsPtr,
+            auth: CharsPtr
         ): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
@@ -110,7 +110,7 @@ import "Srl/Net";
             else return false;
         }
 
-        func smtp(url: ptr[array[Char]], emailArray: Array[Srl.String], password: ptr[array[Char]]): Bool {
+        func smtp(url: CharsPtr, emailArray: Array[Srl.String], password: CharsPtr): Bool {
             def curlHandle: ptr[Curl];
             def resultCode: Int;
             def recipients: ptr[CurlSlist] = 0;
