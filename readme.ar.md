@@ -160,10 +160,13 @@ func sendEmail(receivers: Srl.Array[Srl.String],sender: Srl.String,subject: Srl.
 يعيد نعم اذا تم ارسال البريد بشكل صحيح.
 
 </div>
+
 ```
 func get(): Bool
 ```
+
 <div dir=rtl>
+
 ```
 func هات(): Bool
 ```
