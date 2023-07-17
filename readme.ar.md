@@ -68,7 +68,7 @@ if Net.post("https://example.org","the posted data goes here", data~ptr, size~pt
 }
 ```
 
-## الدالات
+### Request class 
 
 ### أرسل (post)
 

@@ -24,12 +24,6 @@
                 this.authType = authType;
             }
 
-            handler this~init(url: String, authKey: String, contentType: String) {
-                this.url = url;
-                this.authKey = authKey;
-                this.contentType = contentType;
-            }
-
             handler this~init(url: String) {
                 this.url = url;
             }
@@ -43,7 +37,7 @@
                     CurlEasy.setOpt(curlHandle~cnt, CurlOpt.USERPWD, this.authKey.buf);
                 } else if this.authKey != String("") {
                     def authHeader: String = "";
-                    authHeader = String.format("Authorization: %s %s", this.authType, this.authKey);
+                    authHeader = String.format("Authorization: %s %s", this.authType.buf, this.authKey.buf);
                     httpHeaders~cnt = CurlSlist.append(httpHeaders~cnt, authHeader.buf);
                 }
                 contentTypeHeader = String.format("Content-Type: %s", this.contentType.buf);
@@ -202,7 +196,7 @@
                         }
                         Srl.Memory.copy(chunk, data, len);
                         uploadCtx~cnt.bytesRead += len;
-                        Srl.Console.print("ver :%i \n", room);
+
                         return len;
                     }
                     return 0;
@@ -219,7 +213,8 @@
                 CurlEasy.setOpt(curlHandle, CurlOpt.PASSWORD, password);
 
 
-                CurlEasy.setOpt(curlHandle, CurlOpt.MAIL_FROM, emailArray(1).split(":")(1).buf);
+
+                CurlEasy.setOpt(curlHandle, CurlOpt.MAIL_FROM, emailArray(1).buf);
                 recipients = CurlSlist.append(recipients, emailArray(0).split(":")(1).buf);
                 def i: int = 0;
                 def ccArray: Array[Srl.String];
@@ -236,15 +231,23 @@
                 CurlEasy.setOpt(curlHandle, CurlOpt.UPLOAD, 1);
 
                 resultCode = CurlEasy.perform(curlHandle);
+                this.responseHttpStatus = resultCode;
+
                 CurlEasy.cleanup(curlHandle);
+
+
                 if resultCode == CurlCode.OK {
+                    // Zero terminate the data.
                     result = Srl.Memory.realloc(content.data, content.size + 1);
                     result~cast[ptr[array[Word[8]]]]~cnt(content.size) = 0;
                     resultCount = content.size;
                     this.responseBody = String.format("%s", result);
-                    this.responseHttpStatus = resultCode;
+
                     return true;
-                } else return false;
+                } else {
+                    this.responseBody = String.format("error %i", this.responseHttpStatus);
+                    return false;
+                }
             }
 
             handler this.sendEmail(
@@ -270,6 +273,8 @@
                 }
                 emailArray.add(Srl.String(""));
                 emailArray.add(body);
+
+
                 return this.smtp(emailArray, password.buf);
             }
 
