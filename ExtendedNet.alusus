@@ -2,12 +2,13 @@ import "Srl/Net";
 @merge module Srl {
     @merge module Net {
         class Request {
-            def url: String = "";
-            def authKey: String = "";
-            def authType: String = "";
+            def url: String;
+            def authKey: String;
+            def authType: String;
             def contentType: String = "application/json";
-            def responseBody: String = "";
+            def responseBody: String;
             def responseHttpStatus: Int = 0;
+            def verbose: Bool = true;
 
             handler this~init(url: String, authKey: String, authType: String, contentType: String) {
                 this.url = url;
@@ -22,10 +23,9 @@ import "Srl/Net";
                 this.authType = authType;
             }
 
-            handler this~init(url: String, authKey: String, contentType: String) {
+            handler this~init(url: String, contentType: String) {
                 this.url = url;
                 this.authKey = authKey;
-                this.contentType = contentType;
             }
 
             handler this~init(url: String) {
@@ -41,14 +41,14 @@ import "Srl/Net";
                     CurlEasy.setOpt(curlHandle, CurlOpt.USERPWD, this.authKey.buf);
                 } else if this.authKey != String("") {
                     def authHeader: String = "";
-                    authHeader = String.format("Authorization: %s %s", this.authType, this.authKey);
+                    authHeader = String.format("Authorization: %s %s", this.authType.buf, this.authKey.buf);
                     httpHeaders = CurlSlist.append(httpHeaders, authHeader.buf);
                 }
                 def contentTypeHeader: String = String.format("Content-Type: %s", this.contentType.buf);
                 httpHeaders = CurlSlist.append(httpHeaders, contentTypeHeader.buf);
                 CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
                 CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
-                CurlEasy.setOpt(curlHandle, CurlOpt.VERBOSE, 1);
+                if this.verbose CurlEasy.setOpt(curlHandle, CurlOpt.VERBOSE, 1);
                 CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
                 CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
                 return curlHandle;
