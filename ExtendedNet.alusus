@@ -1,4 +1,5 @@
 import "Srl/Net";
+import "Srl/Array";
 @merge module Srl {
     @merge module Net {
         class Request {
@@ -8,6 +9,7 @@ import "Srl/Net";
             def contentType: String = "application/json";
             def responseBody: String = "";
             def responseHttpStatus: Int = 0;
+            def httpHeaderArray: Array[String];
 
             handler this~init(url: String, authKey: String, authType: String, contentType: String) {
                 this.url = url;
@@ -22,14 +24,17 @@ import "Srl/Net";
                 this.authType = authType;
             }
 
-            handler this~init(url: String, authKey: String, contentType: String) {
+            handler this~init(url: String, contentType: String) {
                 this.url = url;
-                this.authKey = authKey;
                 this.contentType = contentType;
             }
 
             handler this~init(url: String) {
                 this.url = url;
+            }
+
+            handler this.addHeader(header: String) {
+                this.httpHeaderArray.add(header);
             }
 
             handler this.initCurl(): ptr[Curl] {
@@ -41,11 +46,15 @@ import "Srl/Net";
                     CurlEasy.setOpt(curlHandle, CurlOpt.USERPWD, this.authKey.buf);
                 } else if this.authKey != String("") {
                     def authHeader: String = "";
-                    authHeader = String.format("Authorization: %s %s", this.authType, this.authKey);
+                    authHeader = String.format("Authorization: %s %s", this.authType.buf, this.authKey.buf);
                     httpHeaders = CurlSlist.append(httpHeaders, authHeader.buf);
                 }
                 def contentTypeHeader: String = String.format("Content-Type: %s", this.contentType.buf);
                 httpHeaders = CurlSlist.append(httpHeaders, contentTypeHeader.buf);
+                def i: int = 0;
+                for i = 0, i < this.httpHeaderArray.getLength(), i++ {
+                    httpHeaders = CurlSlist.append(httpHeaders, this.httpHeaderArray(i).buf);
+                }
                 CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
                 CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
                 CurlEasy.setOpt(curlHandle, CurlOpt.VERBOSE, 1);
@@ -98,19 +107,20 @@ import "Srl/Net";
                 return ret;
             }
 
-            handler this.post(postedData: ptr[array[Char]]): Bool {
-                def curlHandle: ptr[Curl] = this.initCurl();
-                if curlHandle == 0 return false;
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
-                return this.performAndCaptureResponse(curlHandle);
-            }
-
             handler this.post(postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool {
+                def resultCode: Int;
+
+                def httpHeaders: ptr[CurlSlist] = 0;
+
+                def content: ResponseContent;
+                content.data = 0;
+                content.size = 0;
+
                 def curlHandle: ptr[Curl] = this.initCurl();
                 if curlHandle == 0 return false;
 
                 CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
+
 
                 def file: ptr[Srl.Fs.File];
                 file = Srl.Fs.openFile(outputFilename, "wb");
@@ -119,7 +129,23 @@ import "Srl/Net";
                     return false;
                 }
 
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
                 CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, file);
+                CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
+                CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
+                resultCode = CurlEasy.perform(curlHandle);
+                CurlEasy.cleanup(curlHandle);
+                Srl.Fs.closeFile(file);
+                if resultCode == CurlCode.OK {
+                    return true;
+                } else return false;
+            }
+
+            handler this.post(postedData: ptr[array[Char]]): Bool {
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
+
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
                 return this.performAndCaptureResponse(curlHandle);
             }
 
