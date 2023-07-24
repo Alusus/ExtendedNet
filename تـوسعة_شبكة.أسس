@@ -10,12 +10,14 @@
             عرف نوع_البيانات: لقب contentType؛
             عرف متن_الرد: لقب responseBody؛
             عرف رمز_حالة_الرد: لقب responseHttpStatus؛
+            عرف مصفوفة_ترويسة_الطلب: لقب httpHeaderArray;
 
             عرف أرسل: لقب post؛
             عرف هات: لقب get؛
             عرف ضع_ملف: لقب putFile;
             عرف إس_إم_تي_بي: لقب smtp؛
             عرف أرسل_بريد: لقب sendEmail;
+            عرف اضف_ترويسة: لقب addHeader;
 
         }
     }
