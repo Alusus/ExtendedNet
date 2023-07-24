@@ -3,13 +3,15 @@ import "Srl/Array";
 @merge module Srl {
     @merge module Net {
         class Request {
-            def url: String = "";
-            def authKey: String = "";
-            def authType: String = "";
+            def url: String;
+            def authKey: String;
+            def authType: String;
             def contentType: String = "application/json";
-            def responseBody: String = "";
+            def responseBody: String;
             def responseHttpStatus: Int = 0;
             def httpHeaderArray: Array[String];
+            def verbose: Bool = true;
+
 
             handler this~init(url: String, authKey: String, authType: String, contentType: String) {
                 this.url = url;
@@ -57,7 +59,7 @@ import "Srl/Array";
                 }
                 CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
                 CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
-                CurlEasy.setOpt(curlHandle, CurlOpt.VERBOSE, 1);
+                if this.verbose CurlEasy.setOpt(curlHandle, CurlOpt.VERBOSE, 1);
                 CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
                 CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
                 return curlHandle;
