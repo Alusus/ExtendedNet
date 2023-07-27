@@ -183,13 +183,6 @@ import "Srl/Array";
                     return 0;
                 }
 
-                def content: ResponseContent;
-                content.data = 0;
-                content.size = 0;
-
-                def result: ptr;
-                result = 0;
-
                 def uploadPoiner: _UploadStatus;
                 uploadPoiner.bytesRead = 0;
                 uploadPoiner.emailString = Srl.String.merge(emailArray, "\r\n");
