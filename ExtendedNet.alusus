@@ -1,14 +1,16 @@
-
-    import "Srl/Net";
+import "Srl/Net";
+import "Srl/Array";
 @merge module Srl {
     @merge module Net {
         class Request {
-            def url: String = "";
-            def authKey: String = "";
-            def authType: String = "";
+            def url: String;
+            def authKey: String;
+            def authType: String;
             def contentType: String = "application/json";
-            def responseBody: String = "";
-            def responseHttpStatus: int = 0;
+            def responseBody: String;
+            def responseHttpStatus: Int = 0;
+            def httpHeaderArray: Array[String];
+            def verbose: Bool = true;
 
 
             handler this~init(url: String, authKey: String, authType: String, contentType: String) {
@@ -24,9 +26,8 @@
                 this.authType = authType;
             }
 
-            handler this~init(url: String, authKey: String, contentType: String) {
+            handler this~init(url: String, contentType: String) {
                 this.url = url;
-                this.authKey = authKey;
                 this.contentType = contentType;
             }
 
@@ -34,37 +35,61 @@
                 this.url = url;
             }
 
-            handler this.initCurl(curlHandle: ptr[ptr[Curl]], httpHeaders: ptr[ptr[CurlSlist]]): bool {
-                curlHandle~cnt = CurlEasy.init();
-                if curlHandle~cnt == 0 return false;
-                CurlEasy.setOpt(curlHandle~cnt, CurlOpt.URL, this.url.buf);
-                def contentTypeHeader: String = "";
+            handler this.addHeader(header: String) {
+                this.httpHeaderArray.add(header);
+            }
+
+            handler this.initCurl(): ptr[Curl] {
+                def curlHandle: ptr[Curl] = CurlEasy.init();
+                if curlHandle == 0 return 0;
+                CurlEasy.setOpt(curlHandle, CurlOpt.URL, this.url.buf);
+                def httpHeaders: ptr[CurlSlist] = 0;
                 if this.authKey != String("") and this.authType == String("") {
-                    CurlEasy.setOpt(curlHandle~cnt, CurlOpt.USERPWD, this.authKey.buf);
+                    CurlEasy.setOpt(curlHandle, CurlOpt.USERPWD, this.authKey.buf);
                 } else if this.authKey != String("") {
                     def authHeader: String = "";
-                    authHeader = String.format("Authorization: %s %s", this.authType, this.authKey);
-                    httpHeaders~cnt = CurlSlist.append(httpHeaders~cnt, authHeader.buf);
+                    authHeader = String.format("Authorization: %s %s", this.authType.buf, this.authKey.buf);
+                    httpHeaders = CurlSlist.append(httpHeaders, authHeader.buf);
                 }
-                contentTypeHeader = String.format("Content-Type: %s", this.contentType.buf);
-                httpHeaders~cnt = CurlSlist.append(httpHeaders~cnt, contentTypeHeader.buf);
-                CurlEasy.setOpt(curlHandle~cnt, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
-                CurlEasy.setOpt(curlHandle~cnt, CurlOpt.VERBOSE, 1);
-                return true;
+                def contentTypeHeader: String = String.format("Content-Type: %s", this.contentType.buf);
+                httpHeaders = CurlSlist.append(httpHeaders, contentTypeHeader.buf);
+                def i: int = 0;
+                for i = 0, i < this.httpHeaderArray.getLength(), i++ {
+                    httpHeaders = CurlSlist.append(httpHeaders, this.httpHeaderArray(i).buf);
+                }
+                CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
+                CurlEasy.setOpt(curlHandle, CurlOpt.USERAGENT, "ALUSUS NETWORK LIBRARY");
+                if this.verbose CurlEasy.setOpt(curlHandle, CurlOpt.VERBOSE, 1);
+                CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
+                CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
+                return curlHandle;
+            }
+
+            handler this.performAndCaptureResponse(curlHandle: ptr[Curl]): Bool {
+                def content: ResponseContent;
+                content.data = 0;
+                content.size = 0;
+                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
+                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEFUNCTION, responseCallback~ptr);
+                def resultCode: Int = CurlEasy.perform(curlHandle);
+                if resultCode == CurlCode.OK {
+                    def httpStatus: Int[64];
+                    CurlEasy.getInfo(curlHandle, CurlInfo.RESPONSE_CODE, httpStatus~ptr);
+                    CurlEasy.cleanup(curlHandle);
+                    this.responseBody = String(content.data~cast[CharsPtr], content.size);
+                    this.responseHttpStatus = httpStatus;
+                    Memory.free(content.data);
+                    return true;
+                } else {
+                    CurlEasy.cleanup(curlHandle);
+                    return false;
+                }
             }
 
             handler this.putFile(filename: String): Bool {
-                def curlHandle: ptr[Curl];
-                def resultCode: Int;
-                def content: ResponseContent;
-                def result: ptr;
-                def resultCount: int;
-                result = 0;
-                resultCount = 0;
-                def httpHeaders: ptr[CurlSlist] = 0;
-                content.data = 0;
-                content.size = 0;
-                if not this.initCurl(curlHandle~ptr, httpHeaders~ptr) return false;
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
+
                 def file: ptr[Srl.Fs.File];
                 file = Srl.Fs.openFile(filename.buf, "rb");
                 if file == 0 {
@@ -75,76 +100,18 @@
                 Srl.Fs.seek(file, 0, 2);
                 def size: ArchInt = Srl.Fs.tell(file);
                 Srl.Fs.seek(file, 0, 0);
-                def contentTypeHeader: String = "";
 
-                CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
                 CurlEasy.setOpt(curlHandle, CurlOpt.UPLOAD, 1);
                 CurlEasy.setOpt(curlHandle, CurlOpt.READDATA, file);
                 CurlEasy.setOpt(curlHandle, CurlOpt.INFILESIZE_LARGE, size);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEFUNCTION, responseCallback~ptr);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
-                resultCode = CurlEasy.perform(curlHandle);
-                CurlEasy.cleanup(curlHandle);
+                def ret: Bool = this.performAndCaptureResponse(curlHandle);
                 Srl.Fs.closeFile(file);
-                if resultCode == CurlCode.OK {
-                    result = Srl.Memory.realloc(content.data, content.size + 1);
-                    result~cast[ptr[array[Word[8]]]]~cnt(content.size) = 0;
-                    resultCount = content.size;
-                    this.responseBody = String.format("%s", result);
-                    this.responseHttpStatus = resultCode;
-                    return true;
-                } else return false;
-            }
-
-            handler this.post(postedData: ptr[array[Char]]): Bool {
-                def curlHandle: ptr[Curl];
-                def resultCode: Int;
-                def result: ptr;
-                def resultCount: int;
-                def httpHeaders: ptr[CurlSlist] = 0;
-                result = 0;
-                resultCount = 0;
-                def content: ResponseContent;
-                content.data = 0;
-                content.size = 0;
-                if not this.initCurl(curlHandle~ptr, httpHeaders~ptr) return false;
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
-                CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEFUNCTION, responseCallback~ptr);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
-                CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
-                CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
-                resultCode = CurlEasy.perform(curlHandle);
-                CurlEasy.cleanup(curlHandle);
-                if resultCode == CurlCode.OK {
-                    // Zero terminate the data.
-                    result = Srl.Memory.realloc(content.data, content.size + 1);
-                    result~cast[ptr[array[Word[8]]]]~cnt(content.size) = 0;
-                    resultCount = content.size;
-                    this.responseBody = String.format("%s", result);
-                    this.responseHttpStatus = resultCode;
-                    return true;
-                } else {
-                    return false;
-                }
+                return ret;
             }
 
             handler this.post(postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool {
-                def curlHandle: ptr[Curl];
-                def resultCode: Int;
-
-                def httpHeaders: ptr[CurlSlist] = 0;
-
-                def content: ResponseContent;
-                content.data = 0;
-                content.size = 0;
-                curlHandle = CurlEasy.init();
-                if not this.initCurl(curlHandle~ptr, httpHeaders~ptr) return false;
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
-
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
 
                 def file: ptr[Srl.Fs.File];
                 file = Srl.Fs.openFile(outputFilename, "wb");
@@ -155,30 +122,38 @@
 
                 CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
                 CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, file);
-                CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
-                CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
-                resultCode = CurlEasy.perform(curlHandle);
-                CurlEasy.cleanup(curlHandle);
-                Srl.Fs.closeFile(file);
+
+                def resultCode: Int = CurlEasy.perform(curlHandle);
                 if resultCode == CurlCode.OK {
+                    def httpStatus: Int[64];
+                    CurlEasy.getInfo(curlHandle, CurlInfo.RESPONSE_CODE, httpStatus~ptr);
+                    CurlEasy.cleanup(curlHandle);
+                    this.responseHttpStatus = httpStatus;
                     return true;
-                } else return false;
+                } else {
+                    CurlEasy.cleanup(curlHandle);
+                    return false;
+                }
+            }
+
+            handler this.post(postedData: ptr[array[Char]]): Bool {
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
+
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, postedData);
+                return this.performAndCaptureResponse(curlHandle);
+            }
+
+            handler this.get(): Bool {
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
+
+                CurlEasy.setOpt(curlHandle, CurlOpt.HTTPGET, 1);
+
+                return this.performAndCaptureResponse(curlHandle);
             }
 
             handler this.smtp(emailArray: Array[Srl.String], password: CharsPtr): Bool {
-                def curlHandle: ptr[Curl];
-                def httpHeaders: ptr[CurlSlist] = 0;
-                def resultCode: Int;
-                def resultCount: Int;
-                def recipients: ptr[CurlSlist] = 0;
-                def content: ResponseContent;
-
-                def result: ptr;
-                result = 0;
-                resultCount = 0;
-                content.data = 0;
-                content.size = 0;
-
                 class _UploadStatus {
                     def bytesRead: ArchInt;
                     def emailString: String;
@@ -208,43 +183,38 @@
                     return 0;
                 }
 
+                def content: ResponseContent;
+                content.data = 0;
+                content.size = 0;
+
+                def result: ptr;
+                result = 0;
+
                 def uploadPoiner: _UploadStatus;
                 uploadPoiner.bytesRead = 0;
                 uploadPoiner.emailString = Srl.String.merge(emailArray, "\r\n");
-                if not this.initCurl(curlHandle~ptr, httpHeaders~ptr) return false;
 
-
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
 
                 CurlEasy.setOpt(curlHandle, CurlOpt.USERNAME, emailArray(1).split(":")(1).buf);
                 CurlEasy.setOpt(curlHandle, CurlOpt.PASSWORD, password);
 
-
                 CurlEasy.setOpt(curlHandle, CurlOpt.MAIL_FROM, emailArray(1).split(":")(1).buf);
-                recipients = CurlSlist.append(recipients, emailArray(0).split(":")(1).buf);
+                def recipients: ptr[CurlSlist] = CurlSlist.append(0, emailArray(0).split(":")(1).buf);
                 def i: int = 0;
                 def ccArray: Array[Srl.String];
                 ccArray = emailArray(2).split(":")(1).split(",");
-                for i = 0, i < ccArray.getLength() - 1, i += 1
+                for i = 0, i < ccArray.getLength() - 1, i += 1 {
                     recipients = CurlSlist.append(recipients, ccArray(i).buf);
+                }
                 CurlEasy.setOpt(curlHandle, CurlOpt.MAIL_RCPT, recipients);
                 CurlEasy.setOpt(curlHandle, CurlOpt.USE_SSL, 3);
                 CurlEasy.setOpt(curlHandle, CurlOpt.READFUNCTION, _smtpCallbackFunction~ptr);
                 CurlEasy.setOpt(curlHandle, CurlOpt.READDATA, uploadPoiner~ptr);
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEFUNCTION, responseCallback~ptr);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
                 CurlEasy.setOpt(curlHandle, CurlOpt.UPLOAD, 1);
 
-                resultCode = CurlEasy.perform(curlHandle);
-                CurlEasy.cleanup(curlHandle);
-                if resultCode == CurlCode.OK {
-                    result = Srl.Memory.realloc(content.data, content.size + 1);
-                    result~cast[ptr[array[Word[8]]]]~cnt(content.size) = 0;
-                    resultCount = content.size;
-                    this.responseBody = String.format("%s", result);
-                    this.responseHttpStatus = resultCode;
-                    return true;
-                } else return false;
+                return this.performAndCaptureResponse(curlHandle);
             }
 
             handler this.sendEmail(
@@ -271,51 +241,6 @@
                 emailArray.add(Srl.String(""));
                 emailArray.add(body);
                 return this.smtp(emailArray, password.buf);
-            }
-
-            handler this.get(): Bool {
-                def curlHandle: ptr[Curl];
-                def resultCode: Int;
-                def result: ptr;
-
-
-                def resultCount: int;
-                def httpHeaders: ptr[CurlSlist] = 0;
-                result = 0;
-                resultCount = 0;
-
-
-                def content: ResponseContent;
-                content.data = 0;
-                content.size = 0;
-
-                if not this.initCurl(curlHandle~ptr, httpHeaders~ptr) return false;
-
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.HTTPGET, 1);
-
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.HTTPHEADER, httpHeaders);
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEFUNCTION, responseCallback~ptr);
-                CurlEasy.setOpt(curlHandle, CurlOpt.WRITEDATA, content~ptr);
-                CurlEasy.setOpt(curlHandle, CurlOpt.FOLLOWLOCATION, 1);
-                CurlEasy.setOpt(curlHandle, CurlOpt.SSL_VERIFYPEER, 0);
-
-                resultCode = CurlEasy.perform(curlHandle);
-
-                CurlEasy.cleanup(curlHandle);
-                if resultCode == CurlCode.OK {
-                    // Zero terminate the data.
-                    result = Srl.Memory.realloc(content.data, content.size + 1);
-                    result~cast[ptr[array[Word[8]]]]~cnt(content.size) = 0;
-                    resultCount = content.size;
-                    this.responseBody = String.format("%s", result);
-                    this.responseHttpStatus = resultCode;
-                    return true;
-                } else {
-                    return false;
-                }
             }
         }
     }

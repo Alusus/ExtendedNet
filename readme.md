@@ -17,147 +17,98 @@ Apm.importFile("Alusus/ExtendedNet");
 
 ```
 import "Srl/Console";
+import "Srl/String";
+import "Srl/Net";
 import "Apm";
 Apm.importFile("Alusus/ExtendedNet");
-
 use Srl;
-// to get the response from the server
-def data: ptr;
-def size: Int;
-//check if there is an error !
-if Net.post("https://example.org","the posted data go here", data~ptr, size~ptr) {
-  Console.print("%s\n", data);
-  Memory.free(data);
-} else {
-  Console.print("Error!\n");
-}
+def networkObject : Net.Request(String("https://example.org"));
+networkObject.get();
+Console.print("\n%s\n",networkObject.responseBody.buf);
 ```
 
-## Functions
+## Classes
 
-### post
+### Request class 
 
-```
-func post(url: CharsPtr, postedData: CharsPtr, result: ptr[ptr], resultCount: ptr[Int], auth: CharsPtr): Bool
-```
+This class deal with the http request
 
-This function send post request with data and get the server response into the result ptr.
+Class Properties:
 
-`url` the url of the server  we want to send the data to.
+`url` the url of the site we want to send request to.
 
-`postedData` the data we want to send.
+`authKey` the authentication key .
 
-`result` the response from the server.
+`authType` the authentication type "Bearer" for example.
 
-`resultCount` the length of  the response.
+`contentType` the contentType of the request.
 
-`auth` the auth token to send it to the server.
+`responseBody` the response from the website.
 
-Returns true on success.
+`responseHttpStatus` the response status code.
 
-```
-func post(url: CharsPtr, postedData: CharsPtr, outputFilename: CharsPtr, auth: CharsPtr): Bool
-```
+'httpHeaderArray' array to store Http Headers.
 
-This function does the same work as the previous function but it store the server response into file.
-
-`url` the url of the server  we want to send the data to.
-
-`postedData` the data we want to send.
-
-`outputFilename` the path of the file to store the  response.
-
-`auth` the auth token to send it to the server.
-
-Returns true on success.
+#### addHeader
 
 ```
-func post(url: CharsPtr, postedData: CharsPtr, outputFilename: CharsPtr): Bool
+func addHeader(header: String)
 ```
 
-This function does the same work as the previous function but it doesn't have auth in it.
+This method add http header to http header array.
 
-`url` the url of the server  we want to send the data to.
+`header` the header to be added to the array.
 
-`postedData` the data we want to send.
-
-`outputFilename` the path of the file to store the  response.
-
-Returns true on success.
+#### putFile
 
 ```
-func post(url: CharsPtr, postedData: CharsPtr, result: ptr[ptr], resultCount: ptr[Int]): Bool
+func putFile(filename: String): Bool
 ```
 
-This function does the same work as the previous function but it store the server response into result ptr.
+This method upload file the website
 
-`url` the url of the server  we want to send the data to.
+`filename` the path of the file.
 
-`postedData` the data we want to send.
+Returns true if file uploaded.
 
-`result` the response from the server.
-
-`resultCount` the length of  the response.
-
-Returns true on success.
-
-### putFile
+#### post
 
 ```
-func putFile(url: CharsPtr, filename: CharsPtr, auth: CharsPtr): Bool
+func post(postedData: ptr[array[Char]]): Bool
 ```
 
-This function send put request with file to the server.
+This method make post request with the posted Data to the website.
 
-`url` the url of the server  we want to send the file to.
+`postedData` the data to be sended to the website.
 
-`filename` the path of the file we want to send.
-
-`auth` the auth token to send it to the server.
-
-Returns true on success.
+Returns true if data sent.
 
 ```
-func putFile(url: CharsPtr, filename: CharsPtr): Bool
+func post(postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool
 ```
 
-This function does the same work as the previous function but it doesn't have auth in it.
+This method make post request with the posted Data to the website and store server response in a file.
 
-`url` the url of the server  we want to send the file to.
+`postedData` the data to be sended to the website.
 
-`filename` the path of the file we want to send.
+`outputFilename` the path of the file to store response.
 
-Returns true on success.
+Returns true if data sent.
 
-### smtp
-
-```
-func smtp(url: CharsPtr, emailData: Array[Srl.String], password: CharsPtr): Bool
-```
-
-this function send email via smtp protocol.
-
-`url` the url of the server  we want to send the email to.
-
-`emailData` the email we want to send as returned from `prepareEmailData` function.
-
-`password` the password of the sender email.
-
-Returns true on success.
-
-### prepareEmailData
+#### sendEmail
 
 ```
-func prepareEmailData(
-    receivers: Array[String],
-    sender: String, 
-    subject: String,
-    body: String,
-    bodyType: String
-): Array[String]
+func sendEmail(
+    receivers: Srl.Array[Srl.String],
+    sender: Srl.String,
+    subject: Srl.String,
+    body: Srl.String,
+    bodyType: Srl.String,
+    password: Srl.String
+): Bool
 ```
 
-This function builds the email and returns the email array to use for sending the email.
+This method send e-mail via smtp request.
 
 `receivers` array of the receivers emails.
 
@@ -169,5 +120,17 @@ This function builds the email and returns the email array to use for sending th
 
 `bodyType` the type of the email body. Either `html` or `text`.
 
-Returns string array with the email data to send the email using smtp function.
+`password` the password of the sender.
+
+Returns true if e-mail sent.
+
+#### get
+
+```
+func get(): Bool
+```
+
+This method send get request.
+
+Returns true if get request sent.
 

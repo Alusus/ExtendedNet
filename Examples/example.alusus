@@ -5,20 +5,18 @@ import "Apm";
 Apm.importFile("Alusus/ExtendedNet");
 use Srl;
 
-def emailArray: Array[String];
-def receiver: Array[String];
-receiver.add(String("receiver1@example.com"));
-receiver.add(String("receiver2@example.com"));
-emailArray = Net.prepareEmailData(
-    receiver,
-    String("sender@example.com"),
-    String("SMTP example message"),
-    String(
-        "<html><body>\r\n<p>This is the inline <b>HTML</b> message of the email.</p>"
-        "<br />\r\n"
-        "<p>It could be a lot of HTML data that would be displayed by email viewers able to handle HTML.</p>."
-        "</body></html>\r\n"
-    ),
-    String("html")
-);
-Net.smtp("smtp://smtp-mail.example.com:587", emailArray, "password1");
+def networkObject: Net.Request(String("smtp://smtp-mail.outlook.com:587"));
+
+def receivers: Array[String];
+receivers.add(String("receiver1@outlook.com"));
+receivers.add(String("receiver2@outlook.com"));
+def sender: String = "sender@outlook.com";
+def subject: String = "SMTP example message";
+def body: String = "<html><body>\r\n<p>This is the inline <b>HTML</b> message of the email.</p>"
+    "<br />\r\n"
+    "<p>It could be a lot of HTML data that would be displayed by email viewers able to handle HTML.</p>."
+    "</body></html>\r\n";
+def bodyType: String = "html";
+def password: String = "password";
+networkObject.sendEmail(receivers, sender, subject, body, bodyType, password);
+Console.print("\n%s\n", networkObject.responseBody.buf);
