@@ -33,9 +33,7 @@ Console.print("\n%s\n",networkObject.responseBody.buf);
 
 This class deal with the http request
 
-
-class properties
-
+Class Properties:
 
 `url` the url of the site we want to send request to.
 
@@ -51,6 +49,8 @@ class properties
 
 'httpHeaderArray' array to store Http Headers.
 
+#### addHeader
+
 ```
 func addHeader(header: String)
 ```
@@ -58,6 +58,8 @@ func addHeader(header: String)
 This method add http header to http header array.
 
 `header` the header to be added to the array.
+
+#### putFile
 
 ```
 func putFile(filename: String): Bool
@@ -68,6 +70,8 @@ This method upload file the website
 `filename` the path of the file.
 
 Returns true if file uploaded.
+
+#### post
 
 ```
 func post(postedData: ptr[array[Char]]): Bool
@@ -91,9 +95,17 @@ This method make post request with the posted Data to the website and store serv
 
 Returns true if data sent.
 
+#### sendEmail
+
 ```
-func sendEmail(receivers: Srl.Array[Srl.String],sender: Srl.String,subject: Srl.String,body: Srl.String,
-                bodyType: Srl.String,password: Srl.String): bool
+func sendEmail(
+    receivers: Srl.Array[Srl.String],
+    sender: Srl.String,
+    subject: Srl.String,
+    body: Srl.String,
+    bodyType: Srl.String,
+    password: Srl.String
+): Bool
 ```
 
 This method send e-mail via smtp request.
@@ -112,6 +124,8 @@ This method send e-mail via smtp request.
 
 Returns true if e-mail sent.
 
+#### get
+
 ```
 func get(): Bool
 ```
@@ -119,3 +133,4 @@ func get(): Bool
 This method send get request.
 
 Returns true if get request sent.
+

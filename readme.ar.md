@@ -1,28 +1,27 @@
 # ExtendedNet
 [[English]](readme.md)
 
+<div dir=rtl>
+
 توسعة لوحدة شبكة ضمن متم
 
 ## إضافة المكتبة للمشروع
-
-<div dir=rtl>
 
 ```
 اشمل "مـحا"؛
 مـحا.اشمل_ملف("Alusus/ExtendedNet"، "تـوسعة_شبكة.أسس")؛
 ```
 
-</div>
+<div dir=ltr>
 
 ```
 import "Apm";
 Apm.importFile("Alusus/ExtendedNet");
 ```
-<div dir=rtl>
+
+</div>
 
 ## مثال
-
-
 
 ```
 // نقوم بتضمين المكتبات الضرورية
@@ -32,32 +31,36 @@ Apm.importFile("Alusus/ExtendedNet");
 اشمل "مـتم/شـبكة"؛
 اشمل "مـحا"؛
 مـحا.اشمل_ملف("Alusus/ExtendedNet"، "توسيع_شبكة.أسس")؛
-
-دالة ابدأ {
-    عرف غرض_شبكة: طـلب؛
-    غرض_شبكة.هات()؛
-
-    مـتم.طـرفية.اطبع("%s\ج"، غرض_شبكة.متن_الرد)؛
-       
-   
-}
-
-ابدأ()؛
+استخدم مـتم؛
+عرف غرض_شبكة: طـلب؛
+غرض_شبكة.هات()؛
+طـرفية.اطبع("%s\ج"، غرض_شبكة.متن_الرد)؛
 ```
 
+<div dir=ltr>
 
+```
+import "Srl/Console";
+import "Srl/String";
+import "Srl/Net";
+import "Apm";
+Apm.importFile("Alusus/ExtendedNet");
+use Srl;
+def networkObject : Net.Request(String("https://example.org"));
+networkObject.get();
+Console.print("\n%s\n",networkObject.responseBody.buf);
+```
 
+</div>
 
 
 ## الأصناف
 
 ### الصنف طـلب 
 
-هذا الصف يتعامل مع طلبات http
+هذا الصف يتعامل مع طلبات HTTP.
 
-
-متغيرات هذا الصف
-
+متغيرات هذا الصف:
 
 `الرابط` (url).الرابط الخاص بالموقع المراد ارسال الطلبات اليه .
 
@@ -73,17 +76,19 @@ Apm.importFile("Alusus/ExtendedNet");
 
 `مصفوفة_ترويسة_الطلب` (httpHeaderArray) مصفوفة لتخزين ترويسات الطلب
 
-</div>
+### اضف_ترويسة (addHeader)
+
+```
+دالة اضف_ترويسة(الترويسة: نص): ثنائي
+```
+
+<div dir=ltr>
 
 ```
 func addHeader(header: String)
 ```
 
-<div dir=rtl>
-
-```
-دالة اضف_ترويسة(الترويسة: نص): ثنائي
-```
+</div>
 
 هذه الوظيفة تضيف ترويسة الى مصفوفة_ترويسة_الطلب.
 
@@ -91,17 +96,17 @@ func addHeader(header: String)
 
 #### ضع_ملفا (putFile)
 
-</div>
+```
+دالة ضع_ملف(اسم_الملف: نص): ثنائي
+```
+
+<div dir=ltr>
 
 ```
 func putFile(filename: String): Bool
 ```
 
-<div dir=rtl>
-
-```
-دالة ضع_ملف(اسم_الملف: نص): ثنائي
-```
+</div>
 
 هذه الوظيفة ترفع الملفات الى الموقع
 
@@ -111,17 +116,17 @@ func putFile(filename: String): Bool
 
 #### أرسل (post)
 
-</div>
+```
+دالة أرسل(البيانات_المرسلة: مـؤشر_محارف): ثنائي
+```
+
+<div dir=ltr>
 
 ```
 func post(postedData: ptr[array[Char]]): Bool
 ```
 
-<div dir=rtl>
-
-```
-دالة أرسل(البيانات_المرسلة: مـؤشر_محارف): ثنائي
-```
+</div>
 
 تقوم هذه الوظيفة بارسال البيانات الى الموقع باستخدام الطلب post
 
@@ -129,16 +134,12 @@ func post(postedData: ptr[array[Char]]): Bool
 
 تعيد نعم اذا تمت عملية الراسل بشكل صحيح.
 
-</div>
+```
+دالة أرسل(البيانات_المرسلة: مـؤشر_محارف, اسم_الملف: مـؤشر_محارف): ثنائي
+```
 
 ```
 func post(postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool
-```
-
-<div dir=rtl>
-
-```
-دالة أرسل(البيانات_المرسلة: مـؤشر_محارف, اسم_الملف: مـؤشر_محارف): ثنائي
 ```
 
 تقوم هذه الوظيفة بنفس عمل الوظيفة السابقة لكنها تخزن رد المخدم في ملف.
@@ -151,23 +152,33 @@ func post(postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool
 
 #### أرسل_بريد (sendEmail)
 
-</div>
-
-```
-func sendEmail(receivers: Srl.Array[Srl.String],sender: Srl.String,subject: Srl.String,body: Srl.String,
-                bodyType: Srl.String,password: Srl.String): bool
-```
-<div dir=rtl>
-
 ```
 دالة أرسل_بريد(
-    المستلمون: مـصفوفة[نـص], المرسل: نـص, 
-    العنوان: نـص, المتن: نـص, نوع_المتن: نـص, كلمة_السر: نص
-):ثنائي
+    المستلمون: مـصفوفة[نـص],
+    المرسل: نـص, 
+    العنوان: نـص,
+    المتن: نـص,
+    نوع_المتن: نـص,
+    كلمة_السر: نـص
+): ثـنائي
 ```
 
+<div dir=ltr>
 
-تقوم هذه الوظيفة بارسال بريد عبر  طلب smtp.
+```
+func sendEmail(
+    receivers: Srl.Array[Srl.String],
+    sender: Srl.String,
+    subject: Srl.String,
+    body: Srl.String,
+    bodyType: Srl.String,
+    password: Srl.String
+): Bool
+```
+
+</div>
+
+تقوم هذه الوظيفة بارسال بريد عبر  طلب SMTP.
 
 `المستلمون` (`receivers`) مصفوفة لايميلات المستقبلين.
 
@@ -179,25 +190,27 @@ func sendEmail(receivers: Srl.Array[Srl.String],sender: Srl.String,subject: Srl.
 
 `نوع_المتن` (`bodyType`) نوع متن الايميل، إما `text` أو `html`.
 
-`كلمة_السر` (`password`) كلمة السر للمرسل
+`كلمة_السر` (`password`) كلمة السر للمرسل.
 
 تعيد نعم اذا تم ارسال البريد بشكل صحيح.
 
 #### هات (get)
-</div>
-
-```
-func get(): Bool
-```
-
-<div dir=rtl>
 
 ```
 دالة هات(): ثنائي
 ```
 
-تقوم هذه الوظيفة بارسال طلب get.
+<div dir=ltr>
 
-تعيد نعم اذا تم ارسال الطلب بشككل صحيح
+```
+func get(): Bool
+```
 
 </div>
+
+تقوم هذه الوظيفة بارسال طلب get.
+
+تعيد نعم اذا تم ارسال الطلب بشككل صحيح.
+
+</div>
+
