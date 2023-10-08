@@ -134,3 +134,13 @@ This method send get request.
 
 Returns true if get request sent.
 
+#### delete
+
+```
+func delete(): Bool
+```
+
+This method send delete request.
+
+Returns true if delete request sent.
+
