@@ -74,7 +74,9 @@ Console.print("\n%s\n",networkObject.responseBody.buf);
 
 `رمز_حالة_الرد` (responseHttpStatus) الرمز الخاص بحالة الرد .
 
-`مصفوفة_ترويسة_الطلب` (httpHeaderArray) مصفوفة لتخزين ترويسات الطلب
+`مصفوفة_ترويسة_الطلب` (httpHeaderArray) مصفوفة لتخزين ترويسات الطلب.
+
+`إطناب` (verbose) تحديد الرغبة برؤية معلومات مفصلة أثناء العمليات.
 
 ### اضف_ترويسة (addHeader)
 

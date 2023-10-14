@@ -49,6 +49,8 @@ Class Properties:
 
 'httpHeaderArray' array to store Http Headers.
 
+`verbose` whether to log the details of the requests.
+
 #### addHeader
 
 ```

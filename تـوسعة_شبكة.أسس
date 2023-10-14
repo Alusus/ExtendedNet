@@ -11,7 +11,8 @@
             عرف نوع_البيانات: لقب contentType؛
             عرف متن_الرد: لقب responseBody؛
             عرف رمز_حالة_الرد: لقب responseHttpStatus؛
-            عرف مصفوفة_ترويسة_الطلب: لقب httpHeaderArray;
+            عرف مصفوفة_ترويسة_الطلب: لقب httpHeaderArray؛
+            عرف إطناب: لقب verbose؛
 
             عرف أرسل: لقب post؛
             عرف هات: لقب get؛
