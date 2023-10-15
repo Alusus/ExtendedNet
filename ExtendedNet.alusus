@@ -153,6 +153,15 @@ import "Srl/Array";
                 return this.performAndCaptureResponse(curlHandle);
             }
 
+            handler this.delete(): Bool {
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
+
+                CurlEasy.setOpt(curlHandle, CurlOpt.CUSTOMREQUEST, "DELETE");
+
+                return this.performAndCaptureResponse(curlHandle);
+            }
+
             handler this.smtp(emailArray: Array[Srl.String], password: CharsPtr): Bool {
                 class _UploadStatus {
                     def bytesRead: ArchInt;

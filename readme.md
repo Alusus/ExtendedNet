@@ -49,6 +49,8 @@ Class Properties:
 
 'httpHeaderArray' array to store Http Headers.
 
+`verbose` whether to log the details of the requests.
+
 #### addHeader
 
 ```
@@ -133,4 +135,14 @@ func get(): Bool
 This method send get request.
 
 Returns true if get request sent.
+
+#### delete
+
+```
+func delete(): Bool
+```
+
+This method send delete request.
+
+Returns true if delete request sent.
 
