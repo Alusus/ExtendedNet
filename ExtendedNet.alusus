@@ -1,5 +1,7 @@
+import "Srl/Memory";
 import "Srl/Net";
 import "Srl/Array";
+
 @merge module Srl {
     @merge module Net {
         class Request {
@@ -87,25 +89,22 @@ import "Srl/Array";
             }
 
             handler this.putFile(filename: String): Bool {
-                def curlHandle: ptr[Curl] = this.initCurl();
-                if curlHandle == 0 return false;
+                def fileData: ptr;
+                def fileSize: ArchInt;
+                if not Srl.Fs.readFile(filename, fileData~ptr, fileSize~ptr) return false;
 
-                def file: ptr[Srl.Fs.File];
-                file = Srl.Fs.openFile(filename.buf, "rb");
-                if file == 0 {
-                    CurlEasy.cleanup(curlHandle);
+                this.httpHeaderArray.add(String.format("Content-Length: %i", fileSize~cast[Int]));
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 {
+                    Memory.free(fileData);
                     return false;
                 }
 
-                Srl.Fs.seek(file, 0, 2);
-                def size: ArchInt = Srl.Fs.tell(file);
-                Srl.Fs.seek(file, 0, 0);
-
-                CurlEasy.setOpt(curlHandle, CurlOpt.UPLOAD, 1);
-                CurlEasy.setOpt(curlHandle, CurlOpt.READDATA, file);
-                CurlEasy.setOpt(curlHandle, CurlOpt.INFILESIZE_LARGE, size);
+                CurlEasy.setOpt(curlHandle, CurlOpt.CUSTOMREQUEST, "PUT");
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, fileData);
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDSIZE, fileSize);
                 def ret: Bool = this.performAndCaptureResponse(curlHandle);
-                Srl.Fs.closeFile(file);
+                Memory.free(fileData);
                 return ret;
             }
 
