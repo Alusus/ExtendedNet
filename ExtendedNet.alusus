@@ -108,6 +108,17 @@ import "Srl/Array";
                 return ret;
             }
 
+            handler this.put(data: ptr, dataSize: ArchInt): Bool {
+                this.httpHeaderArray.add(String.format("Content-Length: %i", dataSize~cast[Int]));
+                def curlHandle: ptr[Curl] = this.initCurl();
+                if curlHandle == 0 return false;
+
+                CurlEasy.setOpt(curlHandle, CurlOpt.CUSTOMREQUEST, "PUT");
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDS, data);
+                CurlEasy.setOpt(curlHandle, CurlOpt.POSTFIELDSIZE, dataSize);
+                return this.performAndCaptureResponse(curlHandle);
+            }
+
             handler this.post(postedData: ptr[array[Char]], outputFilename: ptr[array[Char]]): Bool {
                 def curlHandle: ptr[Curl] = this.initCurl();
                 if curlHandle == 0 return false;
