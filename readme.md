@@ -1,6 +1,8 @@
 # ExtendedNet
 [[عربي]](readme.ar.md)
 
+> **⚠️ Deprecated:** This library is deprecated. Please use the [Sle](https://github.com/Alusus/Sle) library instead.
+
 Extension to `Srl.Net` module.
 
 ## Adding to the Project

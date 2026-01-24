@@ -1,6 +1,8 @@
 # ExtendedNet
 [[English]](readme.md)
 
+> **⚠️ مُهمَل:** هذه المكتبة مُهملة. يُرجى استخدام مكتبة [Sle](https://github.com/Alusus/Sle) بدلاً منها.
+
 <div dir=rtl>
 
 توسعة لوحدة `شـبكة` ضمن `مـتم`.
